@@ -24,16 +24,11 @@ app.config['TESTING'] = False
 
 API_KEY = "afuona_2026"
 
-# Sites to scrape Stripe keys from
+# ── Sites with known Stripe public keys (used as fallback)
+# The checker scrapes live keys from sites automatically
 STRIPE_SITES = [
     "prontoheat.com",
     "sexywets.ca",
-]
-
-# Hardcoded fallback keys (used if scraping fails)
-FALLBACK_KEYS = [
-    ("prontoheat.com",  "pk_live_aq5B3eo1vH77zIQJFofYSRF9"),
-    ("sexywets.ca",     "pk_live_51HwbTnBQRVCrAGkQcnVCufd2VPXynym"),
 ]
 
 INDEX_TEMPLATE = """
@@ -87,7 +82,7 @@ INDEX_TEMPLATE = """
             <div class="ep">GET /test_proxy?proxy=</div>
             <div class="ep">GET /health</div>
         </div>
-        <div class="footer">© 2026 Yosh ~ Ryo</div>
+        <div class="footer">© 2026 Stripe Auth API</div>
     </div>
 </body>
 </html>
@@ -157,9 +152,8 @@ def get_stripe_key(domain, proxy_dict=None):
     """Scrape live Stripe publishable key from a site."""
     urls = [
         f"https://{domain}/my-account/add-payment-method/",
-        f"https://{domain}/checkout/",
         f"https://{domain}/?wc-ajax=get_stripe_params",
-        f"https://{domain}/wp-admin/admin-ajax.php?action=wc_stripe_get_stripe_params",
+        f"https://{domain}/checkout/",
         f"https://{domain}/",
     ]
     patterns = [
@@ -188,20 +182,13 @@ def get_stripe_key(domain, proxy_dict=None):
 
 
 def find_working_key(site_override=None, proxy_dict=None):
-    """Try sites until we find a working Stripe key. Falls back to hardcoded keys."""
+    """Try sites until we find a working Stripe key."""
     sites = [site_override] if site_override else STRIPE_SITES
     for site in sites:
         site = site.replace('https://', '').replace('http://', '').split('/')[0]
         key = get_stripe_key(site, proxy_dict)
         if key:
             return key, site
-
-    # Fallback to hardcoded keys
-    logger.info("Scraping failed, using hardcoded fallback keys")
-    for site, key in FALLBACK_KEYS:
-        if key and len(key) > 20:
-            return key, site
-
     return None, None
 
 

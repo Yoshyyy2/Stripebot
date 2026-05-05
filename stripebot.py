@@ -18,7 +18,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 BOT_TOKEN  = '8603869007:AAGO09lmBqufzrE2TrkATvr8FMrRVKCirPg'
 ADMIN_ID   = 6601184733          # your Telegram user ID
 API_KEY    = 'afuona_2026'
-API_URL    = 'http://localhost:8000'  # change to your hosted API URL
+API_URL    = 'https://stripe-api-qfvh.onrender.com'  # change to your hosted API URL
 # ──────────────────────────────────────────────────────────
 
 bot = telebot.TeleBot(BOT_TOKEN, num_threads=10)
